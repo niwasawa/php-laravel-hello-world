@@ -19,7 +19,7 @@ class WorldController extends Controller
             if ($comment != null) {
                 $msg .= '(' . $comment . ')';
             } else {
-                $msg .= '(Your comment does not exist.)';
+                $msg .= '(Your comment does not exist.)'
             }
         }
 
