@@ -9,8 +9,7 @@ name: Lint Code Base
 on:
   push:
     branches: [ "*" ]
-  pull_request:
-    branches: [ "master" ]
+
 jobs:
   run-lint:
     runs-on: ubuntu-latest
@@ -21,59 +20,23 @@ jobs:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
           
-      # Cache Docker layers
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.docker-cache
-          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
-
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      # Build and cache Docker images
-      - name: Build Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          load: true
-          cache-from: type=local,src=/tmp/.docker-cache
-          cache-to: type=local,dest=/tmp/.docker-cache
-
       - name: Lint Code Base
         uses: github/super-linter/slim@v4
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: "master"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          output: super-linter.log
+          CREATE_LOG_FILE: true
 
       #- name: PHPStanの出力を日本語に翻訳
       #  run: php translate-phpstan-output.php super-linter.log > translated-output.log
-
-      - name: Upload super-linter log
-        uses: actions/upload-artifact@v2
-        with:
-          name: super-linter-log
-          path: super-linter.log
 
       - name: Reviewdogのセットアップ
         uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest
 
-      - name: Download super-linter log
-        uses: actions/download-artifact@v2
-        with:
-          name: super-linter-log
-
       - name: Reviewdogによるレポート
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cat super-linter.log | reviewdog -f=phpstan -reporter=github-pr-review
+        run: cat $LOG_FILE | reviewdog -f=phpstan -reporter=github-pr-review
