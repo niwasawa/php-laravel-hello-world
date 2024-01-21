@@ -28,14 +28,16 @@ jobs:
           DEFAULT_BRANCH: "master"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          fetch-depth: 0
           output: super-linter.log
 
       #- name: PHPStanの出力を日本語に翻訳
       #  run: php translate-phpstan-output.php super-linter.log > translated-output.log
 
       - name: Reviewdogの実行
-        uses: reviewdog/action-reviewdog@v1
+        uses: reviewdog/action-setup@v1
         with:
+          fetch-depth: 0
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-review # または任意のレポーター
           tool_name: phpstan
